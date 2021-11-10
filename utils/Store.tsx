@@ -1,23 +1,34 @@
-import { createContext, ReactNode, useReducer } from 'react';
+import Cookies from 'js-cookie';
+import { createContext, Dispatch, ReactNode, useReducer } from 'react';
 
 interface ContextProviderProps {
   children: ReactNode;
 }
-
-export interface InitialStateType {
+interface InitialStateType {
   darkMode: boolean;
 }
 
+export interface DarkModeOn {
+  type: 'DARK_MODE_ON';
+}
+export interface DarkModeOff {
+  type: 'DARK_MODE_OFF';
+}
+export type DarkModeAction = DarkModeOn | DarkModeOff;
+
 const initialState: InitialStateType = {
-  darkMode: false,
+  darkMode: Cookies.get('darkMode') === 'ON' ? true : false,
 };
 
-export const StoreContext = createContext<{ state: InitialStateType; dispatch: any }>({
+export const StoreContext = createContext<{
+  state: InitialStateType;
+  dispatch: Dispatch<DarkModeAction>;
+}>({
   state: initialState,
   dispatch: () => undefined,
 });
 
-const reducer = (state: InitialStateType, action: any): InitialStateType => {
+const reducer = (state: InitialStateType, action: DarkModeAction): InitialStateType => {
   switch (action.type) {
     case 'DARK_MODE_ON':
       return { ...state, darkMode: true };

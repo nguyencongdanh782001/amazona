@@ -8,6 +8,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
+import Cookies from 'js-cookie';
 import Head from 'next/head';
 import NextLink from 'next/link';
 import React, { useContext } from 'react';
@@ -24,6 +25,8 @@ const Layout = ({ title, description, children }: LaypoutProps) => {
   const { state, dispatch } = useContext(StoreContext);
   const darkModeHandle = () => {
     dispatch({ type: darkMode ? 'DARK_MODE_OFF' : 'DARK_MODE_ON' });
+    const newDarkMode = !darkMode;
+    Cookies.set('darkMode', newDarkMode ? 'ON' : 'OFF');
   };
   const { darkMode } = state;
   const theme = createTheme({
