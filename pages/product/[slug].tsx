@@ -8,7 +8,7 @@ import { Section } from '../../utils/styles';
 import Image from 'next/image';
 import Product from '../../models/Product';
 import db from '../../utils/db';
-import { GetServerSideProps } from 'next';
+import { GetServerSideProps, GetStaticProps } from 'next';
 import { ParsedUrlQuery } from 'querystring';
 interface ProductType {
   name: string;
@@ -112,7 +112,7 @@ const Slug = ({ product }: SlugPropsType) => {
 
 export default Slug;
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getStaticProps: GetStaticProps = async (context) => {
   const { params } = context;
   console.log(params);
   const slug = params?.slug as ParsedUrlQuery | undefined;
