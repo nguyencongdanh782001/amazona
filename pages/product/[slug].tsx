@@ -1,16 +1,28 @@
-import { useRouter } from 'next/dist/client/router';
-import React from 'react';
-import Layout from '../../components/Layout';
-import data from '../../utils/data';
-import NextLink from 'next/link';
-import { Button, Card, Grid, Link, List, ListItem, Typography } from '@mui/material';
-import { Section } from '../../utils/styles';
+import {
+  Alert,
+  Button,
+  Card,
+  Grid,
+  Link,
+  List,
+  ListItem,
+  Slide,
+  Snackbar,
+  Typography,
+} from '@mui/material';
+import axios from 'axios';
+import { GetServerSideProps } from 'next';
 import Image from 'next/image';
+import NextLink from 'next/link';
+import { ParsedUrlQuery } from 'querystring';
+import React, { useContext } from 'react';
+import Layout from '../../components/Layout';
 import Product from '../../models/Product';
 import db from '../../utils/db';
-import { GetServerSideProps, GetStaticProps } from 'next';
-import { ParsedUrlQuery } from 'querystring';
+import { StoreContext } from '../../utils/Store';
+import { Section } from '../../utils/styles';
 interface ProductType {
+  _id: string;
   name: string;
   slug: string;
   category: string;
@@ -21,6 +33,8 @@ interface ProductType {
   numReviews: number;
   countInStock: number;
   description: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface SlugPropsType {
@@ -28,6 +42,24 @@ interface SlugPropsType {
 }
 
 const Slug = ({ product }: SlugPropsType) => {
+  const [open, setOpen] = React.useState(false);
+
+  const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+  };
+  const { dispatch } = useContext(StoreContext);
+  const addToCartHandle = async () => {
+    const { data } = await axios.get(`/api/products/${product._id}`);
+    if (data.countInStock <= 0) {
+      setOpen(true);
+      return;
+    }
+    dispatch({ type: 'CART_ADD_ITEM', payload: { ...product, quantity: 1 } });
+  };
+
   if (!product) {
     return <div>Product not found</div>;
   }
@@ -97,8 +129,7 @@ const Slug = ({ product }: SlugPropsType) => {
                 </Grid>
               </ListItem>
               <ListItem>
-                <Button fullWidth variant="contained" color="primary">
-                  {' '}
+                <Button fullWidth variant="contained" color="primary" onClick={addToCartHandle}>
                   Add to cart
                 </Button>
               </ListItem>
@@ -106,13 +137,26 @@ const Slug = ({ product }: SlugPropsType) => {
           </Card>
         </Grid>
       </Grid>
+      {open && (
+        <Snackbar
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          open={open}
+          autoHideDuration={3000}
+          onClose={handleClose}
+          TransitionComponent={Slide}
+        >
+          <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+            Sorry. Product is out of stock
+          </Alert>
+        </Snackbar>
+      )}
     </Layout>
   );
 };
 
 export default Slug;
 
-export const getStaticProps: GetStaticProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
   const { params } = context;
   console.log(params);
   const slug = params?.slug as ParsedUrlQuery | undefined;

@@ -1,5 +1,6 @@
 import { ThemeProvider } from '@emotion/react';
 import {
+  Badge,
   createTheme,
   CssBaseline,
   FormControlLabel,
@@ -28,7 +29,7 @@ const Layout = ({ title, description, children }: LaypoutProps) => {
     const newDarkMode = !darkMode;
     Cookies.set('darkMode', newDarkMode ? 'ON' : 'OFF');
   };
-  const { darkMode } = state;
+  const { darkMode, cart } = state;
   const theme = createTheme({
     typography: {
       h1: { fontSize: '1.6rem', fontWeight: 400, margin: '1rem 0' },
@@ -69,7 +70,15 @@ const Layout = ({ title, description, children }: LaypoutProps) => {
                 label=""
               />
               <NextLink href="/cart" passHref>
-                <Link underline="hover">Cart</Link>
+                <Link underline="hover">
+                  {cart.cartItems.length > 0 ? (
+                    <Badge color="error" badgeContent={cart.cartItems.length}>
+                      Cart
+                    </Badge>
+                  ) : (
+                    'Cart'
+                  )}
+                </Link>
               </NextLink>
               <NextLink href="/Login" passHref>
                 <Link underline="hover">Login</Link>
