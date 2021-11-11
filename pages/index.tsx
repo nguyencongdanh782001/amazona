@@ -8,18 +8,38 @@ import {
   Grid,
   Typography,
 } from '@mui/material';
-import type { NextPage } from 'next';
+import type { GetStaticProps, NextPage } from 'next';
 import NextLink from 'next/link';
 import Layout from '../components/Layout';
+import Product from '../models/Product';
 import data from '../utils/data';
-const Home: NextPage = () => {
+import db from '../utils/db';
+
+interface ProductType {
+  name: string;
+  slug: string;
+  category: string;
+  image: string;
+  price: number;
+  brand: string;
+  rating: number;
+  numReviews: number;
+  countInStock: number;
+  description: string;
+}
+
+interface HomePropsType {
+  productList: Array<ProductType>;
+}
+
+const Home: NextPage<HomePropsType> = ({ productList }) => {
   return (
     <Layout>
       <div>
         <h1>Products</h1>
         <Grid container spacing={3}>
-          {data.products.map((product, index) => (
-            <Grid item xs={12} md={4} key={index}>
+          {productList.map((product, index) => (
+            <Grid item xs={6} md={4} key={index}>
               <Card>
                 <NextLink href={`/product/${product.slug}`} passHref>
                   <CardActionArea>
@@ -45,3 +65,13 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+export const getStaticProps: GetStaticProps = async () => {
+  await db.connectDB();
+  const productList: Array<ProductType> = await Product.find({}).lean();
+  return {
+    props: {
+      productList: productList.map(db.converDocToObj),
+    },
+  };
+};

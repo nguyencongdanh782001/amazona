@@ -6,10 +6,28 @@ import NextLink from 'next/link';
 import { Button, Card, Grid, Link, List, ListItem, Typography } from '@mui/material';
 import { Section } from '../../utils/styles';
 import Image from 'next/image';
-const Slug = () => {
-  const router = useRouter();
-  const { slug } = router.query;
-  const product = data.products.find((a) => a.slug === slug);
+import Product from '../../models/Product';
+import db from '../../utils/db';
+import { GetServerSideProps } from 'next';
+import { ParsedUrlQuery } from 'querystring';
+interface ProductType {
+  name: string;
+  slug: string;
+  category: string;
+  image: string;
+  price: number;
+  brand: string;
+  rating: number;
+  numReviews: number;
+  countInStock: number;
+  description: string;
+}
+
+interface SlugPropsType {
+  product: ProductType;
+}
+
+const Slug = ({ product }: SlugPropsType) => {
   if (!product) {
     return <div>Product not found</div>;
   }
@@ -93,3 +111,16 @@ const Slug = () => {
 };
 
 export default Slug;
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { params } = context;
+  console.log(params);
+  const slug = params?.slug as ParsedUrlQuery | undefined;
+  await db.connectDB();
+  const product: ProductType = await Product.findOne({ slug }).lean();
+  return {
+    props: {
+      product: db.converDocToObj(product),
+    },
+  };
+};
