@@ -12,12 +12,12 @@ import {
   Typography,
 } from '@mui/material';
 import axios from 'axios';
-import type { GetStaticProps, NextPage } from 'next';
+import type { GetServerSideProps, NextPage } from 'next';
+import dynamic from 'next/dynamic';
 import NextLink from 'next/link';
 import { useContext, useState } from 'react';
 import Layout from '../components/Layout';
 import Product from '../models/Product';
-import data from '../utils/data';
 import db from '../utils/db';
 import { StoreContext } from '../utils/Store';
 
@@ -109,9 +109,9 @@ const Home: NextPage<HomePropsType> = ({ productList }) => {
   );
 };
 
-export default Home;
+export default dynamic(() => Promise.resolve(Home), { ssr: false });
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getServerSideProps: GetServerSideProps = async () => {
   await db.connectDB();
   const productList: Array<ProductType> = await Product.find({}).lean();
   return {
