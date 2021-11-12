@@ -43,7 +43,7 @@ export type ActionType = DarkModeOn | DarkModeOff | AddAcartItem;
 const initialState: InitialStateType = {
   darkMode: Cookies.get('darkMode') === 'ON' ? true : false,
   cart: {
-    cartItems: [],
+    cartItems: Cookies.get('cartItem') ? JSON.parse(Cookies.get('cartItem') as any) : [],
   },
 };
 
@@ -63,10 +63,11 @@ const reducer = (state: InitialStateType, action: ActionType): InitialStateType 
       return { ...state, darkMode: false };
     case 'CART_ADD_ITEM':
       const newItem = action.payload;
-      const existItem = state.cart.cartItems.find((item) => item.name === newItem.name);
+      const existItem = state.cart.cartItems.find((item) => item._id === newItem._id);
       const cartItems = existItem
-        ? state.cart.cartItems.map((item) => (item.name === existItem.name ? newItem : item))
+        ? state.cart.cartItems.map((item) => (item._id === existItem._id ? newItem : item))
         : [...state.cart.cartItems, newItem];
+      Cookies.set('cartItem', JSON.stringify(cartItems));
       return { ...state, cart: { ...state.cart, cartItems } };
     default:
       return state;

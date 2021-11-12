@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import { GetServerSideProps } from 'next';
+import { useRouter } from 'next/dist/client/router';
 import Image from 'next/image';
 import NextLink from 'next/link';
 import { ParsedUrlQuery } from 'querystring';
@@ -50,14 +51,18 @@ const Slug = ({ product }: SlugPropsType) => {
     }
     setOpen(false);
   };
+
+  const router = useRouter();
   const { dispatch } = useContext(StoreContext);
   const addToCartHandle = async () => {
     const { data } = await axios.get(`/api/products/${product._id}`);
     if (data.countInStock <= 0) {
       setOpen(true);
       return;
+    } else {
+      dispatch({ type: 'CART_ADD_ITEM', payload: { ...product, quantity: 1 } });
+      router.push('/cart');
     }
-    dispatch({ type: 'CART_ADD_ITEM', payload: { ...product, quantity: 1 } });
   };
 
   if (!product) {
