@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   Card,
   CardActionArea,
@@ -6,16 +7,22 @@ import {
   CardContent,
   CardMedia,
   Grid,
+  Slide,
+  Snackbar,
   Typography,
 } from '@mui/material';
+import axios from 'axios';
 import type { GetStaticProps, NextPage } from 'next';
 import NextLink from 'next/link';
+import { useContext, useState } from 'react';
 import Layout from '../components/Layout';
 import Product from '../models/Product';
 import data from '../utils/data';
 import db from '../utils/db';
+import { StoreContext } from '../utils/Store';
 
 interface ProductType {
+  _id: string;
   name: string;
   slug: string;
   category: string;
@@ -26,6 +33,9 @@ interface ProductType {
   numReviews: number;
   countInStock: number;
   description: string;
+  quantity: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface HomePropsType {
@@ -33,6 +43,28 @@ interface HomePropsType {
 }
 
 const Home: NextPage<HomePropsType> = ({ productList }) => {
+  const [open, setOpen] = useState(false);
+
+  const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+  };
+
+  const { state, dispatch } = useContext(StoreContext);
+
+  const addToCartHandle = async (product: ProductType) => {
+    const { data } = await axios.get(`/api/products/${product._id}`);
+    const existItem = state.cart.cartItems.find((x) => x._id === product._id);
+    const quantity = existItem ? existItem.quantity + 1 : 1;
+    if (data.countInStock < quantity) {
+      setOpen(true);
+      return;
+    }
+    await dispatch({ type: 'CART_ADD_ITEM', payload: { ...product, quantity } });
+  };
+
   return (
     <Layout>
       <div>
@@ -51,7 +83,7 @@ const Home: NextPage<HomePropsType> = ({ productList }) => {
                 </NextLink>
                 <CardActions>
                   <Typography variant="subtitle1">{`$${product.price}`}</Typography>
-                  <Button size="small" color="primary">
+                  <Button size="small" color="primary" onClick={() => addToCartHandle(product)}>
                     Add to cart
                   </Button>
                 </CardActions>
@@ -60,6 +92,19 @@ const Home: NextPage<HomePropsType> = ({ productList }) => {
           ))}
         </Grid>
       </div>
+      {open && (
+        <Snackbar
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          open={open}
+          autoHideDuration={3000}
+          onClose={handleClose}
+          TransitionComponent={Slide}
+        >
+          <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+            Sorry. Product is out of stock
+          </Alert>
+        </Snackbar>
+      )}
     </Layout>
   );
 };

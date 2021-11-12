@@ -53,16 +53,17 @@ const Slug = ({ product }: SlugPropsType) => {
   };
 
   const router = useRouter();
-  const { dispatch } = useContext(StoreContext);
+  const { state, dispatch } = useContext(StoreContext);
   const addToCartHandle = async () => {
     const { data } = await axios.get(`/api/products/${product._id}`);
-    if (data.countInStock <= 0) {
+    const existItem = state.cart.cartItems.find((x) => x._id === product._id);
+    const quantity = existItem ? existItem.quantity + 1 : 1;
+    if (data.countInStock <= quantity) {
       setOpen(true);
       return;
-    } else {
-      dispatch({ type: 'CART_ADD_ITEM', payload: { ...product, quantity: 1 } });
-      router.push('/cart');
     }
+    await dispatch({ type: 'CART_ADD_ITEM', payload: { ...product, quantity } });
+    router.push('/cart');
   };
 
   if (!product) {

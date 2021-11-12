@@ -37,8 +37,12 @@ export interface AddAcartItem {
   type: 'CART_ADD_ITEM';
   payload: CartItemType;
 }
+export interface RemoveAcartItem {
+  type: 'CART_REMOVE_ITEM';
+  payload: CartItemType;
+}
 
-export type ActionType = DarkModeOn | DarkModeOff | AddAcartItem;
+export type ActionType = DarkModeOn | DarkModeOff | AddAcartItem | RemoveAcartItem;
 
 const initialState: InitialStateType = {
   darkMode: Cookies.get('darkMode') === 'ON' ? true : false,
@@ -61,7 +65,7 @@ const reducer = (state: InitialStateType, action: ActionType): InitialStateType 
       return { ...state, darkMode: true };
     case 'DARK_MODE_OFF':
       return { ...state, darkMode: false };
-    case 'CART_ADD_ITEM':
+    case 'CART_ADD_ITEM': {
       const newItem = action.payload;
       const existItem = state.cart.cartItems.find((item) => item._id === newItem._id);
       const cartItems = existItem
@@ -69,6 +73,12 @@ const reducer = (state: InitialStateType, action: ActionType): InitialStateType 
         : [...state.cart.cartItems, newItem];
       Cookies.set('cartItem', JSON.stringify(cartItems));
       return { ...state, cart: { ...state.cart, cartItems } };
+    }
+    case 'CART_REMOVE_ITEM': {
+      const cartItems = state.cart.cartItems.filter((item) => action.payload._id !== item._id);
+      Cookies.set('cartItem', cartItems);
+      return { ...state, cart: { ...state.cart, cartItems } };
+    }
     default:
       return state;
   }
